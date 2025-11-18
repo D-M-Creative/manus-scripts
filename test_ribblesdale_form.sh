@@ -2,6 +2,10 @@
 
 # Ribblesdale Park Wedding Brochure Form Test
 # This script tests the form submission and posts failures to ClickUp
+# Also sends Slack notifications for both success and failure
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 LOG_FILE="/home/ubuntu/form_test_logs/test_$(date +%Y%m%d_%H%M%S).log"
 mkdir -p /home/ubuntu/form_test_logs
@@ -97,6 +101,14 @@ if echo "$NETWORK_LOG" | grep -q "admin-ajax.php.*503"; then
     }" >> "$LOG_FILE" 2>&1
     
     echo "Failure posted to ClickUp" | tee -a "$LOG_FILE"
+    
+    # Send Slack notification
+    echo "Sending Slack notification..." | tee -a "$LOG_FILE"
+    python3 "$SCRIPT_DIR/stripeNotify.py" \
+        --title "🚨 Ribblesdale Form Test Failed" \
+        --message "Form submission returned 503 Service Unavailable error. ClickUp task created. Log: $LOG_FILE" \
+        --level error >> "$LOG_FILE" 2>&1
+    
     exit 1
 else
     # Check for other error indicators
@@ -134,9 +146,25 @@ else
         }" >> "$LOG_FILE" 2>&1
         
         echo "Failure posted to ClickUp" | tee -a "$LOG_FILE"
+        
+        # Send Slack notification
+        echo "Sending Slack notification..." | tee -a "$LOG_FILE"
+        python3 "$SCRIPT_DIR/stripeNotify.py" \
+            --title "🚨 Ribblesdale Form Test Failed" \
+            --message "Form submission returned HTTP $ERROR_CODE error. ClickUp task created. Log: $LOG_FILE" \
+            --level error >> "$LOG_FILE" 2>&1
+        
         exit 1
     else
         echo "SUCCESS: Form submission completed without errors" | tee -a "$LOG_FILE"
+        
+        # Send success notification to Slack
+        echo "Sending success notification to Slack..." | tee -a "$LOG_FILE"
+        python3 "$SCRIPT_DIR/stripeNotify.py" \
+            --title "✅ Ribblesdale Form Test Passed" \
+            --message "Form submission completed successfully with no errors detected. Log: $LOG_FILE" \
+            --level success >> "$LOG_FILE" 2>&1
+        
         exit 0
     fi
 fi
