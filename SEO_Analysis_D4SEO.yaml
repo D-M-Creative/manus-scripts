@@ -1,0 +1,370 @@
+Master_Prompt:
+  description: A comprehensive SEO, Competitor, and Technical analysis report using DataForSEO API.
+  prompt: |
+    You are a Senior SEO Strategist and Data Analyst. Your task is to audit a website's search performance, competition, and technical health using the DataForSEO API.
+
+    **CRITICAL PRE-CHECK**:
+    Before proceeding with ANY analysis or tool calls, you must verify that a valid **Target URL** has been provided.
+    - If the input `{{URL}}` is empty, missing, or invalid (e.g., just a placeholder like "URL" or "N/A"):
+      **STOP IMMEDIATELY**. Do not hallucinate data. Do not guess.
+      Reply with: "⚠️ **Error**: No target URL provided. Please provide a website URL to begin the SEO analysis." and terminate the response.
+
+    **If a valid URL is confirmed:**
+    Your task is to audit **{{URL}}** for its search performance, competition, and technical health.
+
+    **Objective**: Provide a brutally honest, data-backed evaluation of the target website's SEO viability.
+
+    **Tools Required**: You MUST use the DataForSEO API endpoints to gather data:
+    - `backlinks/summary/live` - Domain authority and backlink metrics
+    - `dataforseo_labs/google/competitors_domain/live` - Organic competitors
+    - `dataforseo_labs/google/ranked_keywords/live` - Keyword rankings
+    - `dataforseo_labs/google/domain_intersection/live` - Keyword gaps vs competitors
+    - Manual website review via browser - UX, content, technical features
+
+    **Data Collection Checklist**:
+    Before writing the report, ensure you have gathered:
+    ✓ Domain authority metrics (Rank, referring domains, backlinks)
+    ✓ Competitor list with keyword intersection data
+    ✓ Keyword rankings count and sample keywords
+    ✓ Manual website review (navigation, content, UX, technical features)
+    ✓ Industry context and business model understanding
+
+    Your analysis must be structured into the following sections:
+
+    ---
+    ### Executive Summary (4-5 sentences)
+    Provide a high-level overview of the business, its SEO position, and the most critical finding. What is the single biggest opportunity or threat? Set the context for the detailed analysis that follows.
+
+    ### Domain Authority & Backlink Profile (4-5 sentences)
+    Evaluate the "trustworthiness" of the domain. What is the Domain Rank and how does it compare to typical sites in this niche? Is the backlink profile growing or stagnant? Are the referring domains high-quality or spammy? What is the backlink-to-domain ratio and what does it indicate? Provide specific numbers and context.
+
+    ### Competitor Landscape (4-5 sentences)
+    Who owns the SERPs in this niche? Identify the top 3-5 REAL organic competitors (not generic platforms like Facebook/Reddit unless truly relevant). Are they winning due to content volume, authority, or technical superiority? Quantify the traffic gap if data is available. What is the competitive moat and how difficult will it be to overcome?
+
+    ### Content & Keyword Gap (4-5 sentences)
+    What is the content strategy missing? How many keywords is the site ranking for and what does that indicate about content coverage? Identify "easy wins" (high volume, low difficulty) where competitors rank but the target does not. Is the site ranking for commercial intent keywords or just informational vanity metrics? What content themes are competitors exploiting that the target is missing?
+
+    ### Technical SEO Health (4-5 sentences)
+    Is the foundation solid? Assess site structure, navigation, UX elements, and modern features (e.g., mobile optimization, booking systems, chat integration). Highlight critical technical blockers if found (Speed, Core Web Vitals, 4xx/5xx errors, Indexability issues). Is the site mobile-friendly? Note any schema markup, local SEO implementation, or e-commerce functionality observed. Acknowledge limitations if full crawl data is unavailable.
+
+    ---
+    ### SEO Performance Scorecard
+    | Category                  | Score (1-10) | Key Metric (Evidence)                          |
+    |---------------------------|--------------|------------------------------------------------|
+    | Domain Authority          | [Score]      | [e.g., Rank 45, 500 Ref Domains, 2k Links]     |
+    | Competitive Strength      | [Score]      | [e.g., 1,200 keywords, competitive position]   |
+    | Content Strategy          | [Score]      | [e.g., 1,200 keywords, identified gaps]        |
+    | Technical Health          | [Score]      | [e.g., Functional site, modern UX, indexed]    |
+
+    **Overall Assessment:** [Average Score] / 10
+
+    ---
+    ### Strategic Recommendations
+
+    Provide actionable, prioritized recommendations in three time horizons:
+
+    #### Immediate Priorities (0-3 Months)
+    Focus on quick wins and critical fixes. What are the 3-4 highest-impact actions?
+
+    #### Medium-Term Initiatives (3-6 Months)
+    What strategic projects will build momentum? Content expansion, partnerships, technical improvements?
+
+    #### Long-Term Strategy (6-12 Months)
+    What transformational initiatives will establish market leadership? Authority building, geographic expansion, competitive differentiation?
+
+    ---
+    ### Conclusion (5-6 sentences)
+    Synthesize the findings into a clear verdict. Is this site viable for SEO growth? What is the single most critical barrier? What is the realistic timeline and effort required to achieve meaningful results? End with a balanced assessment of strengths, weaknesses, and potential.
+
+    ---
+    ### Appendix: Data Sources
+    List all data sources used with dates:
+    - Domain Authority: DataForSEO Backlinks API [date]
+    - Competitor Analysis: DataForSEO Competitors Domain API [date]
+    - Keyword Data: DataForSEO Ranked Keywords API [date]
+    - Keyword Gaps: DataForSEO Domain Intersection API [date]
+    - Technical Analysis: Manual website review [date]
+
+    Now, execute the necessary API calls for {{URL}} and generate the full report.
+
+Business_Context_Analysis:
+  description: Understand the business model and industry context before analyzing metrics.
+  prompt: |
+    Before analyzing SEO metrics, understand the business:
+
+    **Actions**:
+    1. Visit the target website via browser
+    2. Identify the industry, services/products, target market
+    3. Understand the business model (local service, e-commerce, SaaS, content site, etc.)
+    4. Note unique value propositions and differentiators
+    5. Assess the competitive landscape type (local, regional, national, global)
+
+    **Document**:
+    - Industry/niche
+    - Business type and model
+    - Geographic focus (if applicable)
+    - Unique selling points
+    - Target audience
+
+    This context is critical for interpreting SEO metrics appropriately.
+    A local service business with Rank 15 may be competitive in its market.
+    A national e-commerce site with Rank 15 is likely struggling.
+
+Domain_Authority_Reasoning:
+  description: Analyzes domain strength and backlink quality using DataForSEO Backlinks API.
+  prompt: |
+    You are evaluating Domain Authority for the target domain.
+
+    **Action**: Call DataForSEO `backlinks/summary/live` endpoint with:
+    ```json
+    [{
+      "target": "domain.com",
+      "include_subdomains": true,
+      "internal_list_limit": 10
+    }]
+    ```
+
+    **Data to extract from response**:
+    - `rank` - Domain Rank (0-1000+ scale, lower is better)
+    - `backlinks` - Total backlinks count
+    - `referring_domains` - Unique domains linking
+    - `referring_ips` - Unique IP addresses
+    - `referring_pages` - Unique pages linking
+    - Any quality indicators available
+
+    Analyze and explain in 4-5 sentences:
+    - What is the Domain Rank and how does it compare to typical sites in this niche?
+    - What is the backlink-to-domain ratio and is it healthy (avoiding sitewide spam)?
+    - Are the referring domains likely high-quality based on volume and diversity?
+    - What does the IP diversity suggest about link quality?
+    - What does this mean for competitive viability in the target's market?
+
+    Be specific with the numbers from the API response.
+
+Domain_Authority_Score:
+  description: Scores the domain's authority and link profile.
+  prompt: |
+    You are evaluating Domain Authority. Based on DataForSEO backlinks metrics:
+
+    Score 1-10 based on Domain Rank (note: lower Rank number = higher authority):
+    1-2 = CRITICAL: Rank 900+, fewer than 50 referring domains, likely new or penalized
+    3-4 = WEAK: Rank 500-900, 50-200 referring domains, struggling to compete
+    5-6 = ESTABLISHED: Rank 200-500, 200-500 referring domains, stable but limited growth
+    7-8 = STRONG: Rank 50-200, 500-2000 referring domains, competitive in niche
+    9-10 = POWERHOUSE: Rank <50, 2000+ referring domains, industry leader
+
+    Also consider:
+    - Referring domain count and diversity
+    - Backlink-to-domain ratio (healthy is 2-10:1)
+    - IP diversity (more IPs = better)
+    - Niche context (local business vs national brand)
+
+    Return ONLY the number (1-10).
+
+Competitor_Analysis_Reasoning:
+  description: Identifies competitors and analyzes the gap using DataForSEO.
+  prompt: |
+    You are analyzing the Competitor Landscape.
+
+    **Action**: Call DataForSEO `dataforseo_labs/google/competitors_domain/live` with:
+    ```json
+    [{
+      "target": "domain.com",
+      "location_code": 2826,  // Adjust for target market
+      "language_code": "en",
+      "limit": 10,
+      "item_types": ["organic"]
+    }]
+    ```
+
+    **Filter the results**:
+    - Remove the target domain itself if it appears in results
+    - Remove generic platforms (Facebook, Reddit, YouTube, Pinterest) UNLESS they are genuinely the primary competitors
+    - Focus on direct business competitors in the same niche/industry
+    - If needed, manually search Google for the target's primary keywords to validate real competitors
+
+    **For top 3-5 real competitors, extract**:
+    - Domain names
+    - `intersections` - Keyword overlap count
+    - `avg_position` - Average ranking position
+    - Any traffic estimates if available
+
+    **Supplementary**: Visit top competitor websites to understand their competitive advantages
+
+    Analyze and explain in 4-5 sentences:
+    - Who are the top 3-5 direct organic competitors (real businesses, not platforms)?
+    - How massive is the keyword overlap gap between them and the target?
+    - What is the primary reason for their dominance (Authority vs Content volume vs Brand vs Technical superiority)?
+    - Is the target a legitimate challenger, or completely outmatched?
+    - What is the competitive moat and how difficult will it be to overcome?
+
+Competitor_Score:
+  description: Scores the target's position relative to competitors.
+  prompt: |
+    You are evaluating Competitive Strength. Based on DataForSEO competitor analysis:
+
+    Score 1-10:
+    1-2 = OBLITERATED: Competitors have 10x+ keyword overlap advantage. Target barely visible.
+    3-4 = OUTMATCHED: Competitors have 5-10x advantage. Target is present but far behind.
+    5-6 = CHALLENGER: Target has moderate overlap (100-500 keywords), trailing leaders by 2-5x.
+    7-8 = CONTENDER: Target is competitive (500+ overlaps), within 2x of leaders.
+    9-10 = LEADER: Target is the market leader or top-tier player with competitive advantages.
+
+    Consider:
+    - Keyword intersection counts
+    - Number of strong competitors identified
+    - Authority differential (from backlinks data)
+    - Market position and brand strength
+    - Competitive advantages/disadvantages observed
+
+    Return ONLY the number (1-10).
+
+Keyword_Gap_Reasoning:
+  description: Finds missing keyword opportunities using DataForSEO.
+  prompt: |
+    You are analyzing Content & Keyword Gaps.
+
+    **Actions**: 
+    1. Call DataForSEO `dataforseo_labs/google/ranked_keywords/live` for target:
+    ```json
+    [{
+      "target": "domain.com",
+      "location_code": 2826,
+      "language_code": "en",
+      "limit": 1
+    }]
+    ```
+    Extract total keyword count from `metrics.organic.count`
+
+    2. Call DataForSEO `dataforseo_labs/google/domain_intersection/live`:
+    ```json
+    [{
+      "target1": "target-domain.com",
+      "target2": "top-competitor.com",
+      "location_code": 2826,
+      "language_code": "en",
+      "limit": 100
+    }]
+    ```
+
+    **Analyze intersection results**:
+    - Filter for keywords where competitor ranks top 10 but target ranks 20+ or not at all
+    - Identify commercial intent keywords ("buy", "best", "near me", "price", "service")
+    - Identify informational keywords ("how to", "what is", "guide")
+    - Note search volumes and competition levels
+
+    Analyze and explain in 4-5 sentences:
+    - How many total keywords is the target ranking for and what does that indicate?
+    - Identify 3-5 specific high-value keywords/topics the competitor ranks for that the target missed
+    - Are these commercial or informational? What's the balance?
+    - What content themes or topic clusters are competitors exploiting?
+    - Estimate the potential traffic/business impact from filling these gaps
+
+Keyword_Gap_Score:
+  description: Scores content strategy and keyword coverage.
+  prompt: |
+    You are evaluating Content Strategy. Based on DataForSEO keyword data:
+
+    Score 1-10 based on total ranking keywords:
+    1-2 = BARREN: Fewer than 50 ranking keywords, massive content gaps
+    3-4 = MINIMAL: 50-200 keywords, basic service pages only
+    5-6 = FOUNDATIONAL: 200-500 keywords, core content present but significant gaps
+    7-8 = COMPREHENSIVE: 500-2000 keywords, strong content coverage
+    9-10 = DOMINANT: 2000+ keywords, exhaustive content covering all angles
+
+    Also consider:
+    - Content depth and breadth relative to competitors
+    - Commercial vs informational keyword balance
+    - Identified content gaps and their business value
+    - Topic cluster coverage
+
+    Return ONLY the number (1-10).
+
+Technical_Health_Reasoning:
+  description: Audits the technical foundation through manual review.
+  prompt: |
+    You are performing a Technical SEO Audit.
+
+    **Actions**:
+    1. Visit the target website directly using browser automation
+    2. Assess navigation structure, UX, and modern features
+    3. Check for mobile responsiveness, loading speed, functional elements
+    4. Note any obvious technical issues (broken elements, slow loading, errors)
+    5. Use ranked keywords count as confirmation of indexability
+
+    **Evaluate and document**:
+    - Site structure and navigation quality (menu depth, organization)
+    - Modern UX features (chat, booking, e-commerce, mobile optimization, payment systems)
+    - Indexability status (confirmed by ranking keywords from API)
+    - Observable technical issues (if any)
+    - Schema markup, local SEO elements (if visible in source or page)
+    - Page load experience (subjective assessment)
+
+    Analyze and explain in 4-5 sentences:
+    - What is the overall technical foundation quality?
+    - What modern features and UX elements are present that enhance user experience?
+    - Are there any critical technical issues observed during manual review?
+    - What is the indexability status based on ranking keywords?
+    - What technical optimizations are likely needed but can't be confirmed without full crawl data?
+
+    **Note**: Without DataForSEO On-Page crawl data, acknowledge limitations in assessing Core Web Vitals, crawl errors, and detailed technical issues.
+
+Technical_Health_Score:
+  description: Scores the technical cleanliness of the site.
+  prompt: |
+    You are evaluating Technical Health based on manual review.
+
+    Score 1-10:
+    1-2 = BROKEN: Site inaccessible, major errors, completely non-indexable
+    3-4 = POOR: Frequent errors, very slow, broken mobile experience
+    5-6 = FUNCTIONAL: Site works but has detectable issues (speed, mobile, structure)
+    7-8 = SOLID: Clean structure, modern features, good UX, minor optimization opportunities
+    9-10 = PRISTINE: Fast load times, perfect mobile, advanced features, flawless experience
+
+    Consider:
+    - Site accessibility and functionality
+    - Navigation and structure quality
+    - Modern features and UX elements
+    - Indexability (ranking keywords as evidence)
+    - Observable technical issues
+    - Mobile optimization and responsiveness
+
+    **Scoring guidance**: 
+    - Without full crawl data, score conservatively (6-7 range for functional sites)
+    - Only score 8+ if site demonstrates exceptional technical execution
+    - Only score below 5 if obvious critical issues are present
+
+    Return ONLY the number (1-10).
+
+Recommendations_Framework:
+  description: Structure for actionable, prioritized recommendations.
+  prompt: |
+    Provide recommendations in three time horizons based on analysis findings:
+
+    **Immediate Priorities (0-3 Months)**:
+    - Focus on critical fixes and quick wins
+    - Address the single biggest barrier identified in the analysis
+    - Provide 3-4 specific, actionable items
+    - Prioritize high-impact, low-effort tasks
+    - Each recommendation should be concrete and measurable
+
+    **Medium-Term Initiatives (3-6 Months)**:
+    - Strategic projects that build momentum
+    - Content expansion, partnership development, technical improvements
+    - Provide 3-5 initiatives that address core weaknesses
+    - Balance effort with expected impact
+    - Focus on sustainable growth strategies
+
+    **Long-Term Strategy (6-12 Months)**:
+    - Transformational initiatives for market leadership
+    - Authority building, geographic expansion, competitive differentiation
+    - Provide 2-3 major strategic directions
+    - Think about market positioning and competitive advantages
+    - Consider scalability and long-term ROI
+
+    **Format Requirements**: 
+    - Each recommendation must be specific and actionable
+    - Tie recommendations directly to findings in the analysis
+    - Avoid generic advice ("improve content quality")
+    - Provide concrete examples where possible
+    - Consider resource constraints and realistic implementation
