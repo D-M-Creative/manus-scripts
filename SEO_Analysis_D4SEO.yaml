@@ -79,11 +79,13 @@ Master_Prompt:
     ---
     ### Appendix: Data Sources
     List all data sources used with dates:
-    - Domain Authority: DataForSEO Backlinks API [date]
+    - Domain Authority: DataForSEO Backlinks API [date] OR Ahrefs Free Backlink Checker [date] (if API unavailable)
     - Competitor Analysis: DataForSEO Competitors Domain API [date]
     - Keyword Data: DataForSEO Ranked Keywords API [date]
     - Keyword Gaps: DataForSEO Domain Intersection API [date]
     - Technical Analysis: Manual website review [date]
+    
+    Note: If DataForSEO Backlinks API returns error 40204 (subscription not activated), backlink data is obtained via browser automation using Ahrefs Free Backlink Checker as a fallback method.
 
     Now, execute the necessary API calls for {{URL}} and generate the full report.
 
@@ -111,11 +113,11 @@ Business_Context_Analysis:
     A national e-commerce site with Rank 15 is likely struggling.
 
 Domain_Authority_Reasoning:
-  description: Analyzes domain strength and backlink quality using DataForSEO Backlinks API.
+  description: Analyzes domain strength and backlink quality using DataForSEO Backlinks API with fallback methods.
   prompt: |
     You are evaluating Domain Authority for the target domain.
 
-    **Action**: Call DataForSEO `backlinks/summary/live` endpoint with:
+    **Primary Method**: Call DataForSEO `backlinks/summary/live` endpoint with:
     ```json
     [{
       "target": "domain.com",
@@ -124,39 +126,63 @@ Domain_Authority_Reasoning:
     }]
     ```
 
+    **If DataForSEO Backlinks API returns error 40204 (subscription not activated), use Fallback Method**:
+
+    **Fallback Method**: Use browser automation to check Ahrefs Free Backlink Checker:
+    1. Navigate to https://ahrefs.com/backlink-checker
+    2. Enter the target domain
+    3. Extract visible metrics:
+       - Domain Rating (DR) - 0-100 scale
+       - Total backlinks count
+       - Linking websites (referring domains)
+       - Dofollow percentage
+    4. Convert Ahrefs DR to approximate DataForSEO Rank equivalent:
+       - DR 0-10 ≈ Rank 800-1000+
+       - DR 10-20 ≈ Rank 500-800
+       - DR 20-40 ≈ Rank 200-500
+       - DR 40-60 ≈ Rank 50-200
+       - DR 60+ ≈ Rank <50
+
     **Data to extract from response**:
-    - `rank` - Domain Rank (0-1000+ scale, lower is better)
-    - `backlinks` - Total backlinks count
-    - `referring_domains` - Unique domains linking
-    - `referring_ips` - Unique IP addresses
-    - `referring_pages` - Unique pages linking
-    - Any quality indicators available
+    - Domain Rank (or DR converted to Rank equivalent)
+    - Total backlinks count
+    - Referring domains count
+    - Dofollow ratio (if available)
+    - Any quality indicators visible
 
     Analyze and explain in 4-5 sentences:
-    - What is the Domain Rank and how does it compare to typical sites in this niche?
+    - What is the Domain Rank/Rating and how does it compare to typical sites in this niche?
     - What is the backlink-to-domain ratio and is it healthy (avoiding sitewide spam)?
     - Are the referring domains likely high-quality based on volume and diversity?
-    - What does the IP diversity suggest about link quality?
+    - What does the dofollow ratio suggest about link quality?
     - What does this mean for competitive viability in the target's market?
 
-    Be specific with the numbers from the API response.
+    Be specific with the numbers from the API response or Ahrefs data.
+    If using fallback method, note the data source in your analysis.
 
 Domain_Authority_Score:
   description: Scores the domain's authority and link profile.
   prompt: |
-    You are evaluating Domain Authority. Based on DataForSEO backlinks metrics:
+    You are evaluating Domain Authority. Based on DataForSEO backlinks metrics OR Ahrefs data:
 
-    Score 1-10 based on Domain Rank (note: lower Rank number = higher authority):
+    **If using DataForSEO Rank** (note: lower Rank number = higher authority):
     1-2 = CRITICAL: Rank 900+, fewer than 50 referring domains, likely new or penalized
     3-4 = WEAK: Rank 500-900, 50-200 referring domains, struggling to compete
     5-6 = ESTABLISHED: Rank 200-500, 200-500 referring domains, stable but limited growth
     7-8 = STRONG: Rank 50-200, 500-2000 referring domains, competitive in niche
     9-10 = POWERHOUSE: Rank <50, 2000+ referring domains, industry leader
 
+    **If using Ahrefs Domain Rating (DR)** (0-100 scale, higher is better):
+    1-2 = CRITICAL: DR 0-5, fewer than 50 referring domains, likely new or penalized
+    3-4 = WEAK: DR 5-15, 50-200 referring domains, struggling to compete
+    5-6 = ESTABLISHED: DR 15-30, 200-500 referring domains, stable but limited growth
+    7-8 = STRONG: DR 30-50, 500-2000 referring domains, competitive in niche
+    9-10 = POWERHOUSE: DR 50+, 2000+ referring domains, industry leader
+
     Also consider:
     - Referring domain count and diversity
     - Backlink-to-domain ratio (healthy is 2-10:1)
-    - IP diversity (more IPs = better)
+    - Dofollow ratio (healthy is 60-80%)
     - Niche context (local business vs national brand)
 
     Return ONLY the number (1-10).
